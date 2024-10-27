@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Finance Dashboard</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f5f5f5;
+      }
+      h1 {
+        text-align: center;
+      }
+      .chart-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-gap: 20px;
+        padding: 20px;
+        max-width: 1200px;
+        margin: auto;
+      }
+      svg {
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Finance Dashboard</h1>
+    <div class="chart-container">
+      <div id="bar-chart"></div>
+      <div id="pie-chart"></div>
+      <div id="scatter-plot"></div>
+      <div id="box-plot"></div>
+    </div>
+
+    <script>
+      const data = [
+  { age: 25, income: 40000, loanAmount: 15000, default: 0, education: "High School", employmentType: "Full-Time" },
+  { age: 35, income: 80000, loanAmount: 30000, default: 1, education: "Bachelor's", employmentType: "Self-Employed" },
+  { age: 45, income: 120000, loanAmount: 50000, default: 0, education: "Master's", employmentType: "Full-Time" },
+  { age: 55, income: 65000, loanAmount: 25000, default: 0, education: "Diploma", employmentType: "Retired" },
+  { age: 30, income: 90000, loanAmount: 20000, default: 1, education: "Bachelor's", employmentType: "Part-Time" },
+  { age: 40, income: 70000, loanAmount: 22000, default: 0, education: "High School", employmentType: "Full-Time" },
+  { age: 28, income: 50000, loanAmount: 18000, default: 0, education: "Associate's", employmentType: "Part-Time" },
+  { age: 50, income: 110000, loanAmount: 45000, default: 0, education: "Master's", employmentType: "Self-Employed" },
+  { age: 32, income: 82000, loanAmount: 28000, default: 1, education: "Bachelor's", employmentType: "Contract" },
+  { age: 48, income: 60000, loanAmount: 15000, default: 0, education: "Diploma", employmentType: "Full-Time" },
+  { age: 24, income: 45000, loanAmount: 10000, default: 0, education: "High School", employmentType: "Intern" },
+  { age: 38, income: 75000, loanAmount: 67000, default: 1, education: "Bachelor's", employmentType: "Full-Time" }
+];
+
+
+      // Set common margin settings for charts
+      const margin = { top: 20, right: 30, bottom: 40, left: 50 };
+      const width = 400 - margin.left - margin.right;
+      const height = 300 - margin.top - margin.bottom;
+
+      // 1. Bar Chart - Loan Amount by Age
+      // 1. Bar Chart - Loan Amount by Age
+     // Define SVG area and margins
+// 1. Bar Chart - Loan Amount by Age
+// Define SVG area and margins
+const svgBar = d3
+  .select("#bar-chart")
+  .append("svg")
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+  .attr("transform", `translate(${margin.left},${margin.top})`);
+
+// Define X and Y axes
+const xBar = d3
+  .scaleBand()
+  .domain(data.map(d => d.education))
+  .range([0, width])
+  .padding(0.1);
+
+const yBar = d3
+  .scaleLinear()
+  .domain([0, d3.max(data, d => d.loanAmount)])
+  .range([height, 0]);
+
+// Append X-axis
+svgBar.append("g")
+  .attr("transform", `translate(0,${height})`)
+  .call(d3.axisBottom(xBar))
+  .append("text")
+  .attr("x", width / 2)
+  .attr("y", 35)
+  .attr("fill", "black")
+  .attr("text-anchor", "middle")
+  .style("font-size", "12px")
+  .text("Education Level");
+
+// Append Y-axis
+svgBar.append("g")
+  .call(d3.axisLeft(yBar))
+  .append("text")
+  .attr("transform", "rotate(-90)")
+  .attr("x", -height / 2)
+  .attr("y", -40)
+  .attr("fill", "black")
+  .attr("text-anchor", "middle")
+  .style("font-size", "12px")
+  .text("Loan Amount");
+
+// Create the tooltip
+const tooltip = d3.select("body")
+  .append("div")
+  .style("position", "absolute")
+  .style("background-color", "white")
+  .style("border", "1px solid #d3d3d3")
+  .style("border-radius", "5px")
+  .style("padding", "8px")
+  .style("display", "none") // Hide tooltip initially
+  .style("pointer-events", "none") // Avoid conflicts with hover
+  .style("box-shadow", "0px 0px 10px rgba(0, 0, 0, 0.2)"); // Add shadow for better visibility
+
+// Append bars to the chart
+svgBar.selectAll(".bar")
+  .data(data)
+  .enter()
+  .append("rect")
+  .attr("class", "bar")
+  .attr("x", d => xBar(d.education))
+  .attr("y", d => yBar(d.loanAmount))
+  .attr("width", xBar.bandwidth())
+  .attr("height", d => height - yBar(d.loanAmount))
+  .attr("fill", "teal")
+  .on("mouseover", function (event, d) {
+    tooltip
+      .style("display", "block")
+      .html(`Loan Amount: $${d.loanAmount}`);
+    d3.select(this).attr("fill", "darkblue"); // Change color on hover
+  })
+  .on("mousemove", function (event) {
+    tooltip
+      .style("left", (event.pageX + 10) + "px")
+      .style("top", (event.pageY - 30) + "px"); // Adjust top positioning
+  })
+  .on("mouseout", function () {
+    tooltip.style("display", "none");
+    d3.select(this).attr("fill", "teal"); // Reset color on mouseout
+  });
+
+      // 2. Pie Chart - Default Status
+      // 2. Pie Chart - Employment Type
+      
+      // Assuming you have already created your pie chart as in your previous code
+
+// 2. Pie Chart - Default Status
+// Assuming you have already created your pie chart as in your previous code
+
+// Assuming you have already created your pie chart as in your previous code
+
+// Assuming you have already created your pie chart as in your previous code
+
+// 2. Pie Chart - Default Status
+const svgPie = d3
+  .select("#pie-chart")
+  .append("svg")
+  .attr("width", width)
+  .attr("height", height)
+  .append("g")
+  .attr("transform", `translate(${width / 2},${height / 2})`);
+
+// Count occurrences of each employment type
+const employmentData = d3.rollup(
+  data,
+  v => v.length,
+  d => d.employmentType
+);
+
+const pie = d3.pie().value(d => d[1]); // d[1] contains the count
+const arc = d3.arc().innerRadius(0).outerRadius(Math.min(width, height) / 2);
+
+// Create arcs and add them to the pie chart
+svgPie
+  .selectAll("path")
+  .data(pie(Array.from(employmentData.entries())))
+  .enter()
+  .append("path")
+  .attr("d", arc)
+  .attr("fill", (d, i) => d3.schemeCategory10[i]) // Use a color scheme for diversity
+  .attr("stroke", "white")
+  .attr("stroke-width", 1);
+
+// Add percentage labels
+svgPie
+  .selectAll("text")
+  .data(pie(Array.from(employmentData.entries())))
+  .enter()
+  .append("text")
+  .attr("transform", d => `translate(${arc.centroid(d)})`)
+  .attr("dy", "0.35em")
+  .attr("text-anchor", "middle")
+  .text(d => `${Math.round((d.data[1] / d3.sum(Array.from(employmentData.values()))) * 100)}%`);
+
+// Add legend
+const legend = d3.select("#pie-chart")
+  .append("svg")
+  .attr("width", 150) // Adjust as necessary
+  .attr("height", 150) // Adjust as necessary
+  .attr("transform", `translate(${width - 170}, 20)`); // Position the legend
+
+// Create legend items
+const legendItems = legend
+  .selectAll(".legend")
+  .data(Array.from(employmentData.entries()))
+  .enter()
+  .append("g")
+  .attr("class", "legend")
+  .attr("transform", (d, i) => `translate(0, ${i * 25})`); // Space out legend items
+
+legendItems
+  .append("circle")
+  .attr("cx", 10) // X position of the circle
+  .attr("cy", 12) // Y position of the circle
+  .attr("r", 10) // Radius of the circle
+  .style("fill", (d, i) => d3.schemeCategory10[i]); // Use the same color as the pie slices
+
+legendItems
+  .append("text")
+  .attr("x", 30) // X position of the text
+  .attr("y", 12) // Align vertically with the circle
+  .attr("dy", "0.35em") // Adjust vertical alignment
+  .text(d => `${d[0]} (${Math.round((d[1] / d3.sum(Array.from(employmentData.values()))) * 100)}%)`); // Employment Type and Percentage
+
+
+
+
+      // 3. Scatter Plot - Income vs Loan Amount
+const svgScatter = d3
+  .select("#scatter-plot")
+  .append("svg")
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+  .attr("transform", `translate(${margin.left},${margin.top})`);
+
+const xScatter = d3.scaleLinear().domain([0, d3.max(data, d => d.income)]).range([0, width]);
+const yScatter = d3.scaleLinear().domain([0, d3.max(data, d => d.loanAmount)]).range([height, 0]);
+
+// Add X axis with labels
+const xAxis = svgScatter.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(xScatter));
+
+// Add X axis label
+svgScatter.append("text")
+  .attr("class", "x-axis-label")
+  .attr("x", width / 2) // Center the label horizontally
+  .attr("y", height + margin.bottom - 10) // Position below the x-axis
+  .attr("fill", "black")
+  .attr("text-anchor", "middle")
+  .style("font-size", "12px")
+  .text("Income");
+
+// Rotate x-axis labels
+xAxis.selectAll("text")
+  .attr("transform", "rotate(-45)") // Rotate the labels by -45 degrees
+  .attr("dy", "0.35em") // Adjust vertical alignment
+  .attr("dx", "-0.8em"); // Adjust horizontal position to avoid overlap
+
+// Add Y axis with labels
+const yAxis = svgScatter.append("g").call(d3.axisLeft(yScatter));
+
+// Add Y axis label
+svgScatter.append("text")
+  .attr("class", "y-axis-label")
+  .attr("transform", "rotate(-90)") // Rotate the label for vertical alignment
+  .attr("y", -margin.left + 10) // Position to the left of the Y-axis
+  .attr("x", -height / 2) // Center it vertically
+  .attr("fill", "black")
+  .attr("text-anchor", "middle")
+  .style("font-size", "12px")
+  .text("Loan Amount");
+
+// Append circles for scatter plot
+svgScatter.selectAll("circle")
+  .data(data)
+  .enter()
+  .append("circle")
+  .attr("cx", d => xScatter(d.income))
+  .attr("cy", d => yScatter(d.loanAmount))
+  .attr("r", 5) // Set radius for the circles
+  .attr("fill", d => (d.default ? "red" : "green")) // Color based on default status
+  .on("mouseover", function (event, d) {
+    tooltip
+      .style("display", "block")
+      .html(`Income: $${d.income}<br>Loan Amount: $${d.loanAmount}<br>Default: ${d.default ? "Yes" : "No"}`);
+    d3.select(this).attr("fill", "orange"); // Change color on hover
+  })
+  .on("mousemove", function (event) {
+    tooltip
+      .style("left", (event.pageX + 10) + "px")
+      .style("top", (event.pageY - 30) + "px");
+  })
+  .on("mouseout", function () {
+    tooltip.style("display", "none");
+    d3.select(this).attr("fill", d => (d.default ? "red" : "green")); // Reset color on mouseout
+  });
+
+
+// 4. Box Plot - Loan Amount Distribution
+const svgBox = d3
+  .select("#box-plot")
+  .append("svg")
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+  .attr("transform", `translate(${margin.left},${margin.top})`);
+
+// Calculate the quartiles and the interquartile range
+const q1 = d3.quantile(data.map(d => d.loanAmount).sort(d3.ascending), 0.25);
+const median = d3.median(data.map(d => d.loanAmount));
+const q3 = d3.quantile(data.map(d => d.loanAmount).sort(d3.ascending), 0.75);
+const iqr = q3 - q1;
+
+// Define the scales for the box plot
+const xBox = d3.scaleBand().domain(["Loan Amount"]).range([0, width]).padding(0.2);
+const yBox = d3.scaleLinear().domain([0, d3.max(data, d => d.loanAmount)]).range([height, 0]);
+
+// Append the rectangle for the box
+svgBox.append("rect")
+  .attr("x", xBox("Loan Amount"))
+  .attr("y", yBox(q3))
+  .attr("width", xBox.bandwidth())
+  .attr("height", yBox(q1) - yBox(q3))
+  .attr("fill", "lightblue");
+
+// Add median line
+svgBox.append("line")
+  .attr("x1", xBox("Loan Amount"))
+  .attr("x2", xBox("Loan Amount") + xBox.bandwidth())
+  .attr("y1", yBox(median))
+  .attr("y2", yBox(median))
+  .attr("stroke", "black")
+  .attr("stroke-width", 2);
+
+// Append whiskers
+svgBox.append("line")
+  .attr("x1", xBox("Loan Amount") + xBox.bandwidth() / 2)
+  .attr("x2", xBox("Loan Amount") + xBox.bandwidth() / 2)
+  .attr("y1", yBox(q1 - 1.5 * iqr))
+  .attr("y2", yBox(q3 + 1.5 * iqr))
+  .attr("stroke", "black");
+
+// Y-axis for box plot
+svgBox.append("g")
+  .call(d3.axisLeft(yBox));
+
+// X-axis for box plot
+svgBox.append("g")
+  .attr("transform", `translate(0,${height})`)
+  .call(d3.axisBottom(xBox));
+
+// 5. Histogram - Age Distribution
+// Create the histogram data and calculate the total loan amount for each bin
+
+
+    </script>
+  </body>
+</html>

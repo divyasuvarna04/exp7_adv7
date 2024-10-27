@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Cloud - Employment Types</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/d3-cloud/build/d3.layout.cloud.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        svg {
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Word Cloud of Employment Types</h1>
+    <div id="wordcloud"></div>
+
+    <script>
+        // Sample data
+        const data = [
+            { age: 25, income: 40000, loanAmount: 15000, default: 0, education: "High School", employmentType: "Full-Time" },
+            { age: 35, income: 80000, loanAmount: 30000, default: 1, education: "Bachelor's", employmentType: "Self-Employed" },
+            { age: 45, income: 120000, loanAmount: 50000, default: 0, education: "Master's", employmentType: "Full-Time" },
+            { age: 55, income: 65000, loanAmount: 25000, default: 0, education: "Diploma", employmentType: "Retired" },
+            { age: 30, income: 90000, loanAmount: 20000, default: 1, education: "Bachelor's", employmentType: "Part-Time" },
+            { age: 40, income: 70000, loanAmount: 22000, default: 0, education: "High School", employmentType: "Full-Time" },
+            { age: 28, income: 50000, loanAmount: 18000, default: 0, education: "Associate's", employmentType: "Part-Time" },
+            { age: 50, income: 110000, loanAmount: 45000, default: 0, education: "Master's", employmentType: "Self-Employed" },
+            { age: 32, income: 82000, loanAmount: 28000, default: 1, education: "Bachelor's", employmentType: "Contract" },
+            { age: 48, income: 60000, loanAmount: 15000, default: 0, education: "Diploma", employmentType: "Full-Time" },
+            { age: 24, income: 45000, loanAmount: 10000, default: 0, education: "High School", employmentType: "Intern" },
+            { age: 38, income: 75000, loanAmount: 67000, default: 1, education: "Bachelor's", employmentType: "Full-Time" }
+        ];
+
+        // Count frequency of each employment type
+        const employmentFrequency = d3.rollups(
+            data,
+            v => v.length,
+            d => d.employmentType
+        );
+
+        // Set dimensions of the word cloud
+        const width = 600;
+        const height = 400;
+
+        // Create word cloud layout
+        const layout = d3.layout.cloud()
+            .size([width, height])
+            .words(employmentFrequency.map(([word, size]) => ({ text: word, size: size * 20 })))
+            .padding(5)
+            .rotate(() => (Math.random() > 0.5 ? 0 : 90)) // Random rotation for visual variety
+            .fontSize(d => d.size)
+            .on("end", draw);
+
+        layout.start();
+
+        // Draw word cloud
+        function draw(words) {
+            d3.select("#wordcloud")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .append("g")
+                .attr("transform", `translate(${width / 2}, ${height / 2})`)
+                .selectAll("text")
+                .data(words)
+                .enter().append("text")
+                .style("font-size", d => `${d.size}px`)
+                .style("fill", () => d3.schemeCategory10[Math.floor(Math.random() * 10)])
+                .attr("text-anchor", "middle")
+                .attr("transform", d => `translate(${d.x}, ${d.y}) rotate(${d.rotate})`)
+                .text(d => d.text);
+        }
+    </script>
+</body>
+</html>

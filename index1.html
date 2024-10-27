@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Age vs Loan Amount Histogram</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .bar {
+            fill: steelblue;
+        }
+        .bar:hover {
+            fill: orange;
+        }
+    </style>
+</head>
+<body>
+    <h1>Age vs Loan Amount Histogram</h1>
+    <div id="histogram"></div>
+
+    <script>
+        // Sample data
+        const data = [
+            { age: 25, income: 40000, loanAmount: 15000, default: 0, education: "High School", employmentType: "Full-Time" },
+            { age: 35, income: 80000, loanAmount: 30000, default: 1, education: "Bachelor's", employmentType: "Self-Employed" },
+            { age: 45, income: 120000, loanAmount: 50000, default: 0, education: "Master's", employmentType: "Full-Time" },
+            { age: 55, income: 65000, loanAmount: 25000, default: 0, education: "Diploma", employmentType: "Retired" },
+            { age: 30, income: 90000, loanAmount: 20000, default: 1, education: "Bachelor's", employmentType: "Part-Time" },
+            { age: 40, income: 70000, loanAmount: 22000, default: 0, education: "High School", employmentType: "Full-Time" },
+            { age: 28, income: 50000, loanAmount: 18000, default: 0, education: "Associate's", employmentType: "Part-Time" },
+            { age: 50, income: 110000, loanAmount: 45000, default: 0, education: "Master's", employmentType: "Self-Employed" },
+            { age: 32, income: 82000, loanAmount: 28000, default: 1, education: "Bachelor's", employmentType: "Contract" },
+            { age: 48, income: 60000, loanAmount: 15000, default: 0, education: "Diploma", employmentType: "Full-Time" },
+            { age: 24, income: 45000, loanAmount: 10000, default: 0, education: "High School", employmentType: "Intern" },
+            { age: 38, income: 75000, loanAmount: 67000, default: 1, education: "Bachelor's", employmentType: "Full-Time" }
+        ];
+
+        // Set dimensions and margins
+        const margin = { top: 20, right: 30, bottom: 30, left: 40 };
+        const width = 600 - margin.left - margin.right;
+        const height = 400 - margin.top - margin.bottom;
+
+        // Create SVG container
+        const svg = d3.select("#histogram")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        // Create histogram bins based on age
+        const histogram = d3.histogram()
+            .value(d => d.age) // The value accessor for the histogram
+            .domain([0, d3.max(data, d => d.age)]) // Set the domain
+            .thresholds(10); // Number of bins
+
+        const bins = histogram(data);
+
+        // Set x scale for age using linear scale
+        const x = d3.scaleLinear()
+            .domain([0, d3.max(data, d => d.age)]) // Domain is the range of ages
+            .range([0, width]);
+
+        // Set y scale for loan amount
+        const y = d3.scaleLinear()
+            .domain([0, d3.max(bins, d => d3.sum(d, bin => bin.loanAmount))]) // Sum of loan amounts in each bin
+            .nice() // Nice round the domain
+            .range([height, 0]);
+
+        // Append x axis
+        svg.append("g")
+            .attr("transform", `translate(0,${height})`)
+            .call(d3.axisBottom(x).ticks(10)) // Adjust the number of ticks as necessary
+            .append("text")
+            .attr("x", width / 2)
+            .attr("y", margin.bottom)
+            .attr("fill", "black")
+            .attr("text-anchor", "middle")
+            .text("Age");
+
+        // Append y axis
+        svg.append("g")
+            .call(d3.axisLeft(y))
+            .append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -height / 2)
+            .attr("y", -margin.left)
+            .attr("fill", "black")
+            .attr("text-anchor", "middle")
+            .text("Total Loan Amount");
+
+        // Create bars
+        svg.selectAll(".bar")
+            .data(bins)
+            .enter()
+            .append("rect")
+            .attr("class", "bar")
+            .attr("x", d => x(d.x0)) // Start of each bin
+            .attr("y", d => y(d3.sum(d, bin => bin.loanAmount))) // Use total loan amount for the height
+            .attr("width", d => x(d.x1) - x(d.x0)) // Width is the difference between bin ends
+            .attr("height", d => height - y(d3.sum(d, bin => bin.loanAmount)));
+    </script>
+</body>
+</html>
